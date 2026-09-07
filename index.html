@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>엘라라의 전설 (The Legend of Elara)</title>
+<link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+<div id="wrap">
+  <h1 id="logo">엘라라의 전설</h1>
+  <div id="stage">
+    <canvas id="game" width="480" height="320"></canvas>
+    <div id="touch">
+      <div id="dpad">
+        <button data-key="up" aria-label="위">▲</button>
+        <div class="mid">
+          <button data-key="left" aria-label="왼쪽">◀</button>
+          <button data-key="down" aria-label="아래">▼</button>
+          <button data-key="right" aria-label="오른쪽">▶</button>
+        </div>
+      </div>
+      <div id="btns">
+        <button data-key="attack" aria-label="공격">검</button>
+        <button data-key="use" aria-label="아이템">템</button>
+        <button data-key="interact" aria-label="대화">E</button>
+        <button data-key="inventory" aria-label="인벤토리">가방</button>
+      </div>
+    </div>
+  </div>
+  <div id="help">
+    <p>이동: WASD/방향키 · 검: Z/J/Space · 아이템: X/K · 전환: C/L · 대화: E/Enter · 가방: I/Tab · 목표: Q · 음소거: M</p>
+    <p><button data-action="mute">소리 켜기/끄기 (M)</button> <button data-action="inventory">인벤토리 (I)</button></p>
+  </div>
+</div>
+<script type="module" src="./js/main.js"></script>
+<script type="module">
+import { startFromDOM } from './js/main.js';
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => startFromDOM());
+} else {
+  startFromDOM();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,91 @@
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #06060f;
+  color: #eee;
+  font-family: monospace, "Malgun Gothic", sans-serif;
+  min-height: 100vh;
+}
+#wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px;
+}
+#logo {
+  color: #ffd94a;
+  font-size: 22px;
+  margin: 8px 0 12px;
+  letter-spacing: 2px;
+}
+#stage {
+  position: relative;
+}
+#game {
+  width: min(96vw, 960px);
+  aspect-ratio: 3 / 2;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  background: #000;
+  border: 3px solid #2e2e44;
+  border-radius: 4px;
+  display: block;
+  margin: 0 auto;
+}
+#help {
+  max-width: 960px;
+  text-align: center;
+  font-size: 12px;
+  color: #aaa;
+}
+#help button {
+  background: #22223a;
+  color: #fff;
+  border: 1px solid #555;
+  border-radius: 4px;
+  padding: 6px 10px;
+  margin: 2px;
+  cursor: pointer;
+}
+/* touch controls: hidden unless touch detected */
+#touch {
+  display: none;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 8px;
+  width: min(96vw, 960px);
+}
+body.touch #touch {
+  display: flex;
+}
+#dpad {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+#dpad .mid {
+  display: flex;
+  gap: 4px;
+}
+#touch button {
+  width: 56px;
+  height: 56px;
+  font-size: 16px;
+  border-radius: 12px;
+  border: 2px solid #555;
+  background: rgba(40, 40, 70, 0.85);
+  color: #fff;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+#touch button:active {
+  background: rgba(80, 80, 140, 0.9);
+}
+#btns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
