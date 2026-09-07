@@ -29,6 +29,7 @@ export class Player {
     this.moving = false;
     this.animT = 0;
     this.dead = false;
+    this.god = false; // auto director invincibility (not serialized)
     this.hasShield = false;
     this.potions = 0;
     this.heartPieces = 0;
@@ -164,7 +165,7 @@ export class Player {
   }
 
   hurt(amount, fromX, fromY) {
-    if (this.iframes > 0 || this.dead) return false;
+    if (this.god || this.iframes > 0 || this.dead) return false;
     this.hp -= amount;
     this.iframes = 1.0;
     const dx = this.cx - fromX;

@@ -18,6 +18,8 @@ import { drawHUD } from './ui/hud.js';
 import { drawTitle, drawGameOver, drawEnding } from './ui/screens.js';
 import { DIALOGS } from './content/dialogs.js';
 import { initialQuest, getObjectiveText, questOnEvent, bossToDungeon } from './content/quests.js';
+import { currentStage, STAGE_TOTAL } from './content/stages.js';
+import { AutoDirector } from './engine/autodirector.js';
 import { SHOP_STOCK } from './content/items.js';
 import { aabbOverlap } from './engine/utils.js';
 
@@ -48,6 +50,10 @@ export class Game {
     this.frame = 0;
     this.pendingAfterDialog = null;
     this.lastHitWasBomb = false;
+    this.auto = false;
+    this.autoDirector = new AutoDirector();
+    this.lastStageN = 0;
+    this.stageBannerT = 0;
     this.saveExistsCache = false;
     try {
       this.saveExistsCache = hasSave();
@@ -75,6 +81,8 @@ export class Game {
     this.player.hp = this.player.maxHp;
     this.enterMap('overworld', s.tx, s.ty, true);
     this.state = 'playing';
+    this.lastStageN = 1;
+    this.stageBannerT = 2.8;
     audio.ensure();
     audio.setMusicMode('overworld');
   }
@@ -98,6 +106,8 @@ export class Game {
     this.playtime = snap.playtime || 0;
     this.deaths = snap.deaths || 0;
     this.showQuest = snap.showQuest !== false;
+    this.lastStageN = currentStage(this.quest).n;
+    this.stageBannerT = 0;
     this.projectiles = [];
     this.bombs = [];
     this.drops = [];
@@ -110,6 +120,8 @@ export class Game {
   }
 
   save(manual) {
+    // never touch storage while the auto director is driving (protects real saves)
+    if (this.auto) return false;
     const ok = saveGame(this.snapshot());
     if (!ok && manual && this.ctx) {
       // storage failed; still continue
@@ -323,6 +335,7 @@ export class Game {
           this.dialog.show(DIALOGS.elder_nosword.name, DIALOGS.elder_nosword.pages, null);
         }
       } else if (q.stage === 'returnSword') {
+        questOnEvent(q, 'reportSword');
         this.dialog.show(DIALOGS.elder_hassword.name, DIALOGS.elder_hassword.pages, () => this.autosave());
       } else if (q.stage === 'findShards') {
         this.dialog.show(DIALOGS.elder_progress.name, DIALOGS.elder_progress.pages, null, { shards: q.shards });
@@ -540,8 +553,29 @@ export class Game {
       inp.consume('mute');
     }
 
+    // auto director presses real input keys before anything else consumes them
+    if (this.autoDirector.active) this.autoDirector.update(dt, this, inp);
+
+    // stage tracking: banner on stage-up, timer ticks everywhere
+    {
+      const st = currentStage(this.quest);
+      if (this.lastStageN === 0) this.lastStageN = st.n;
+      else if (st.n > this.lastStageN) {
+        this.lastStageN = st.n;
+        this.stageBannerT = 2.8;
+        audio.blip();
+      }
+    }
+    if (this.stageBannerT > 0) this.stageBannerT -= dt;
+
     if (this.state === 'title') {
       try { this.saveExistsCache = hasSave(); } catch (e) { /* ignore */ }
+      if (inp.justPressed('auto')) {
+        inp.consume('auto');
+        audio.ensure();
+        this.autoDirector.start(this, true);
+        return;
+      }
       if (inp.justPressed('interact') || inp.justPressed('confirm') || inp.justPressed('attack')) {
         inp.consume('interact'); inp.consume('confirm'); inp.consume('attack');
         audio.ensure();
@@ -608,6 +642,10 @@ export class Game {
     if (inp.justPressed('quest')) {
       this.showQuest = !this.showQuest;
       inp.consume('quest');
+    }
+    if (inp.justPressed('auto')) {
+      inp.consume('auto');
+      this.autoDirector.toggle(this);
     }
     if (inp.justPressed('interact')) {
       inp.consume('interact');
@@ -930,6 +968,31 @@ export class Game {
     drawHUD(ctx, this, VIEW_W);
     this.dialog.draw(ctx, VIEW_W, VIEW_H);
     this.inventory.draw(ctx, this, VIEW_W, VIEW_H);
+    // stage banner
+    if (this.stageBannerT > 0) {
+      const st = currentStage(this.quest);
+      const prevAlpha = ctx.globalAlpha;
+      ctx.globalAlpha = Math.max(0, Math.min(1, this.stageBannerT / 0.5));
+      ctx.fillStyle = 'rgba(0,0,20,0.78)';
+      ctx.fillRect(0, 118, VIEW_W, 68);
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.fillStyle = '#ffd94a';
+      ctx.font = 'bold 15px monospace';
+      ctx.fillText('STAGE ' + st.n + '/' + STAGE_TOTAL, VIEW_W / 2, 134);
+      ctx.fillStyle = '#fff';
+      ctx.font = '14px monospace';
+      ctx.fillText(st.name, VIEW_W / 2, 158);
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'alphabetic';
+      ctx.globalAlpha = prevAlpha;
+    }
+    // auto badge
+    if (this.auto) {
+      ctx.font = 'bold 10px monospace';
+      ctx.fillStyle = '#ff5f5f';
+      ctx.fillText('▶ AUTO', 6, VIEW_H - 12);
+    }
     // mute icon
     try {
       ctx.font = '10px monospace';
@@ -1012,6 +1075,10 @@ export function startFromDOM() {
     el.addEventListener('click', () => {
       const a = el.getAttribute('data-action');
       if (a === 'mute') audio.toggleMute();
+      if (a === 'auto') {
+        if (game.state === 'title') game.autoDirector.start(game, true);
+        else game.autoDirector.toggle(game);
+      }
       if (a === 'inventory') {
         if (game.state === 'playing' && !game.dialog.active) game.inventory.open = true;
       }

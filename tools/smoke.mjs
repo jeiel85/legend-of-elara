@@ -61,7 +61,7 @@ function assert(cond, msg) {
 const main = await import('../js/main.js');
 const { Game } = main;
 const { input } = await import('../js/engine/input.js');
-const { saveGame, loadGame, hasSave } = await import('../js/engine/save.js');
+const { saveGame, loadGame, hasSave, clearSave } = await import('../js/engine/save.js');
 
 assert(typeof Game === 'function', 'Game class exported');
 
@@ -168,6 +168,34 @@ game.update(1 / 60, input);
 input.update();
 input.releaseAll();
 assert(foe.hp < hpBefore || foe.dead, 'sword damages enemy');
+
+// 4b. knight shield: front hits blocked, backstabs land
+const knight = createEnemy('knight', 45, 60);
+knight.x = game.player.x + 16;
+knight.y = game.player.y;
+game.enemies.push(knight);
+const khp0 = knight.hp;
+knight.stun = 1; // freeze AI so it keeps facing where we set it
+knight.dir = 'left'; // facing the player
+game.player.dir = 'right';
+game.player.attackCd = 0;
+input.simPress('attack');
+game.update(1 / 60, input);
+input.update();
+input.releaseAll();
+assert(knight.hp === khp0, 'knight blocks front sword hit');
+knight.stun = 1;
+knight.dir = 'right'; // facing away: back exposed
+game.player.x = knight.x - 20;
+game.player.y = knight.y;
+game.player.dir = 'right';
+game.player.attackCd = 0;
+input.simPress('attack');
+game.update(1 / 60, input);
+input.update();
+input.releaseAll();
+assert(knight.hp < khp0 || knight.dead, 'knight takes backstab hit');
+game.enemies = game.enemies.filter((e) => e !== knight);
 
 // 5. items: bow / bomb / boomerang / lantern / potion paths
 game.player.selectedItem = 'bow';
@@ -289,6 +317,43 @@ const { DIALOGS } = await import('../js/content/dialogs.js');
 assert(!!DIALOGS.elder_intro && !!DIALOGS.gate_open, 'dialogs present');
 const { initialQuest, getObjectiveText } = await import('../js/content/quests.js');
 assert(typeof getObjectiveText(initialQuest()) === 'string', 'quest objective text works');
+
+// 9. auto director: full automatic run through every stage to the ending
+const { currentStage, STAGE_TOTAL } = await import('../js/content/stages.js');
+clearSave(); // earlier sections wrote a save; auto run must leave storage empty
+const autoGame = new Game(canvas, makeCtxStub());
+const dir = autoGame.autoDirector;
+dir.start(autoGame, true);
+assert(autoGame.auto === true, 'auto mode active after director start');
+assert(autoGame.state === 'playing', 'auto run starts playing');
+const seen = new Set();
+let ticks = 0;
+const MAX_TICKS = 60 * 300; // 5 minutes of game time cap
+let lastStageSeen = 0;
+while (autoGame.state !== 'ending' && ticks < MAX_TICKS) {
+  autoGame.update(1 / 60, input);
+  input.update();
+  input.releaseAll();
+  ticks++;
+  const stn = currentStage(autoGame.quest).n;
+  if (stn > lastStageSeen) {
+    lastStageSeen = stn;
+    results.push('OK: auto reached stage ' + stn + ' at ' + (ticks / 60).toFixed(1) + 's game-time');
+  }
+  seen.add(stn);
+  if (autoGame.state === 'gameover') {
+    assert(false, 'auto run died (god mode failed) at tick ' + ticks);
+    break;
+  }
+}
+assert(autoGame.state === 'ending', 'auto director reaches the ending (ticks=' + ticks + ')');
+assert(seen.size >= 8, 'auto run passed through ' + seen.size + '/9 stages');
+assert(currentStage(autoGame.quest).n === STAGE_TOTAL, 'final stage is the ending stage');
+// auto mode must not have written any save
+assert(!hasSave(), 'auto run did not touch storage');
+// director deactivates on ending
+assert(dir.done === true && dir.active === false, 'director done + deactivated on ending');
+autoGame.render(); // ending screen draws
 
 console.log(results.join('\n'));
 console.log('SMOKE PASS');

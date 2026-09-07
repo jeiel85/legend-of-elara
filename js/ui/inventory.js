@@ -1,6 +1,7 @@
 // Inventory overlay: item grid, select, quest log tab, shop buying.
 import { ITEM_DEFS, SELECTABLE_ITEMS, SHOP_STOCK, swordName } from '../content/items.js';
 import { getObjectiveText } from '../content/quests.js';
+import { currentStage, STAGE_TOTAL } from '../content/stages.js';
 import { audio } from '../engine/audio.js';
 
 export class InventoryUI {
@@ -119,8 +120,11 @@ export class InventoryUI {
         ctx.fillStyle = '#fff';
         ctx.fillText(`문장 조각: ${game.quest.shards}/3`, px + 280, py + 30);
       } else if (this.tab === 1) {
+        const st = currentStage(game.quest);
+        ctx.fillStyle = '#8be28b';
+        ctx.fillText(`스테이지 ${st.n}/${STAGE_TOTAL} — ${st.name}`, px + 14, py + 32);
         ctx.fillStyle = '#ffe9a8';
-        ctx.fillText('목표: ' + getObjectiveText(game.quest), px + 14, py + 32);
+        ctx.fillText('목표: ' + getObjectiveText(game.quest), px + 14, py + 48);
         ctx.fillStyle = '#fff';
         const lines = [
           `검: ${swordName(p.swordTier)}`,
@@ -132,7 +136,7 @@ export class InventoryUI {
           'X/K 아이템, C/L 아이템 전환, E/Enter 대화,',
           'I/Tab 인벤토리, Q 목표 표시, M 음소거'
         ];
-        lines.forEach((ln, i) => ctx.fillText(ln, px + 14, py + 52 + i * 16));
+        lines.forEach((ln, i) => ctx.fillText(ln, px + 14, py + 68 + i * 16));
       } else {
         ctx.fillStyle = '#fff';
         ctx.fillText(`보유 젬: ${p.gems}`, px + 14, py + 32);

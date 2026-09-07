@@ -42,7 +42,10 @@ export function drawTitle(ctx, W, H, frame, saveExists) {
     ctx.font = '11px monospace';
     ctx.fillText(saveExists ? '저장 데이터가 있습니다 (이어하기 가능)' : '새로운 모험을 시작하세요', cx, 262);
     ctx.fillText('Z:검 X:아이템 E:대화 I:인벤토리 M:음소거', cx, 280);
-    ctx.fillText('제작: jeiel85 · MIT', cx, 296);
+    ctx.fillStyle = '#7db3f2';
+    ctx.fillText('P 또는 ▶자동진행 버튼: 엔딩까지 자동 진행 데모', cx, 296);
+    ctx.fillStyle = '#666';
+    ctx.fillText('제작: jeiel85 · MIT', cx, 310);
     ctx.textAlign = 'left';
   } catch (e) { /* stub */ }
 }

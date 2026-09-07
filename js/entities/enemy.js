@@ -57,11 +57,12 @@ export class Enemy {
 
   hurt(amount, fromDir, game) {
     if (this.dead) return false;
-    // knight shielded front: block unless from behind or bomb
+    // knight shielded front: block unless from behind or bomb.
+    // fromDir is the travel direction of the attack; a FRONT hit travels
+    // opposite to the way the knight faces (it faces the attacker).
     if (this.ai === 'shielded' || this.ai === 'bossKnight') {
-      const want = this.dir; // enemy facing
-      // if attack comes from front (opposite of fromDir?), approximate: if fromDir equals enemy dir -> front hit blocked
-      if (fromDir === this.dir && amount < 99 && !game?.lastHitWasBomb) {
+      const frontTravel = { up: 'down', down: 'up', left: 'right', right: 'left' }[this.dir];
+      if (fromDir === frontTravel && amount < 99 && !game?.lastHitWasBomb) {
         return 'blocked';
       }
     }

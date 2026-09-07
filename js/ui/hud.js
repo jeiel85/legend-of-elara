@@ -1,5 +1,6 @@
-// Top bar HUD: hearts (half support), gems, keys, item icon, quest hint, boss bars.
+// Top bar HUD: hearts (half support), gems, keys, item icon, quest hint, stage, boss bars.
 import { getObjectiveText } from '../content/quests.js';
+import { currentStage, STAGE_TOTAL } from '../content/stages.js';
 
 export function drawHUD(ctx, game, W) {
   try {
@@ -44,6 +45,12 @@ export function drawHUD(ctx, game, W) {
       ctx.font = '11px monospace';
       const obj = getObjectiveText(game.quest);
       ctx.fillText('목표: ' + obj, 6, 29);
+      // stage counter (right-aligned on the same line)
+      const st = currentStage(game.quest);
+      ctx.textAlign = 'right';
+      ctx.fillStyle = '#8be28b';
+      ctx.fillText('STAGE ' + st.n + '/' + STAGE_TOTAL, W - 6, 29);
+      ctx.textAlign = 'left';
     }
     // boss HP bar (only after the boss intro triggered on proximity)
     const boss = game.currentBoss();

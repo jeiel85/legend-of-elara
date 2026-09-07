@@ -4,7 +4,7 @@
 
 const GAME_KEYS = [
   'up', 'down', 'left', 'right',
-  'attack', 'use', 'interact', 'inventory', 'mute', 'cycle', 'quest', 'confirm', 'cancel'
+  'attack', 'use', 'interact', 'inventory', 'mute', 'cycle', 'quest', 'confirm', 'cancel', 'auto'
 ];
 
 function createState() {
@@ -35,6 +35,7 @@ class InputManager {
       KeyM: 'mute',
       KeyC: 'cycle', KeyL: 'cycle',
       KeyQ: 'quest',
+      KeyP: 'auto',
       Escape: 'cancel'
     };
     if (typeof document !== 'undefined' && typeof window !== 'undefined') {
