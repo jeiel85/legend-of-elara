@@ -39,6 +39,17 @@ html, body {
   font-size: 12px;
   color: #aaa;
 }
+#help .repo-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #aaa;
+  text-decoration: none;
+}
+#help .repo-link:hover,
+#help .repo-link:focus-visible {
+  color: #ffd94a;
+}
 #help button {
   background: #22223a;
   color: #fff;
