@@ -1,7 +1,8 @@
 /* 엘라라의 전설 서비스워커
  * - 내비게이션: network-first, 오프라인이면 캐시된 index.html
  * - 같은 출처 정적 자산: stale-while-revalidate (NETWORK_FIRST_DESTINATIONS에 든 종류는 network-first)
- * - 프리캐시는 셸(index.html·manifest·아이콘)만. 그 외 자산은 처음 사용될 때 캐시된다.
+ * - 프리캐시는 셸(index.html·manifest·스타일·아이콘)과 js/ 아래 모든 ES 모듈(첫 방문 직후 오프라인 실행용).
+ *   js/에 모듈을 추가하면 PRECACHE_URLS에도 추가한다(tools/smoke.mjs가 누락을 검사).
  * 배포 내용이 바뀌어 캐시를 강제로 비워야 하면 CACHE_VERSION을 올린다.
  */
 const CACHE_VERSION = 'v1';
@@ -15,7 +16,31 @@ const PRECACHE_URLS = [
   './manifest.webmanifest',
   './css/style.css',
   './icons/icon-192.png',
-  './icons/icon-512.png'
+  './icons/icon-512.png',
+  './js/content/dialogs.js',
+  './js/content/enemies.js',
+  './js/content/items.js',
+  './js/content/quests.js',
+  './js/content/stages.js',
+  './js/engine/audio.js',
+  './js/engine/autodirector.js',
+  './js/engine/camera.js',
+  './js/engine/input.js',
+  './js/engine/save.js',
+  './js/engine/utils.js',
+  './js/entities/drops.js',
+  './js/entities/enemy.js',
+  './js/entities/npc.js',
+  './js/entities/player.js',
+  './js/entities/projectile.js',
+  './js/main.js',
+  './js/ui/dialog.js',
+  './js/ui/hud.js',
+  './js/ui/inventory.js',
+  './js/ui/screens.js',
+  './js/world/maps.js',
+  './js/world/tiles.js',
+  './js/world/world.js'
 ];
 
 self.addEventListener('install', (event) => {

@@ -355,5 +355,21 @@ assert(!hasSave(), 'auto run did not touch storage');
 assert(dir.done === true && dir.active === false, 'director done + deactivated on ending');
 autoGame.render(); // ending screen draws
 
+// PWA: 서비스워커가 js/ 아래 모든 모듈을 프리캐시하는지 (첫 방문 직후 오프라인 실행 보장)
+{
+  const { readFileSync, readdirSync } = await import('node:fs');
+  const { join, relative, sep } = await import('node:path');
+  const { fileURLToPath } = await import('node:url');
+  const root = join(fileURLToPath(new URL('.', import.meta.url)), '..');
+  const sw = readFileSync(join(root, 'sw.js'), 'utf8');
+  const walk = (dir) =>
+    readdirSync(dir, { withFileTypes: true }).flatMap((d) =>
+      d.isDirectory() ? walk(join(dir, d.name)) : d.name.endsWith('.js') ? [join(dir, d.name)] : []
+    );
+  const modules = walk(join(root, 'js')).map((f) => './' + relative(root, f).split(sep).join('/'));
+  const missing = modules.filter((m) => !sw.includes(`'${m}'`));
+  assert(missing.length === 0, `sw.js precaches all ${modules.length} js modules` + (missing.length ? ` (missing: ${missing.join(', ')})` : ''));
+}
+
 console.log(results.join('\n'));
 console.log('SMOKE PASS');

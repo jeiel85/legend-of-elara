@@ -48,6 +48,10 @@ if (document.readyState === 'loading') {
 }
 </script>
 <script>
+  // 저장소 링크에서 누른 Enter/Space가 게임 전역 키 입력(시작·확인 등)으로 전달되지 않게 한다.
+  document.querySelectorAll('.repo-link').forEach((a) => {
+    a.addEventListener('keydown', (e) => e.stopPropagation());
+  });
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('./sw.js').catch((err) => {
